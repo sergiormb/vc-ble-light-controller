@@ -4,35 +4,35 @@ Hash: SHA512
 Architectures: all
 Codename: stable
 Components: main
-Date: Thu, 18 Jun 2026 12:07:53 +0000
+Date: Thu, 18 Jun 2026 12:09:29 +0000
 Label: VC BLE Light Controller
 Origin: VC BLE Light Controller
 Suite: stable
 MD5Sum:
- 96592dc736c793e88bac60ad7ad14776              168 Release
- 637e95db1c40c495d7c693242aeb2bdc              483 main/binary-all/Packages.gz
+ 4b8bcc4d1c7fc21dc08450a1bd5432f1              168 Release
+ 0cbe4ba6716c3e7a1ef5a557502f9431              482 main/binary-all/Packages.gz
 SHA1:
- 01ad4777a03c7ca5043e5673cf9532f427176482              168 Release
- e47c919a23b0bac867e86fe88038232b91d7a869              483 main/binary-all/Packages.gz
+ 667534a83d423b81ff8a9deab4aef6676dcd02c3              168 Release
+ 501a010df18694fb301cb5b528143b33afe1ea22              482 main/binary-all/Packages.gz
 SHA256:
- 6af2b42d431a76e111cdc75edf28bf8e6444f01c42a7e581a43fa1720b35e53d              168 Release
- 64ac25156d61227f536707798397244c6cd4286e147eb8990a67b06495117b4b              483 main/binary-all/Packages.gz
+ 3f5153fd558685882edb3dbc95ed04bed08595bf4e02fc98071fb4a56cd284e1              168 Release
+ 338888b8f3080881da3605c206121ccf949d3b78474d19fe23dac3178e1095b7              482 main/binary-all/Packages.gz
 SHA512:
- 84db4bd8053d8862afdfff307bf7bb4441cebc684dcccbca0cc16cdd568edea052b97ad79b092f23f63022d9b020c2e66e32764d615d593057936778d5a974d6              168 Release
- e215c5c0e62bd1e829b02a9e5a081a9214930239ac73d281d499d8ca732781a68582b04afd641f08805c5b46eb9204d08de71f3cda043e0a44b29b46820a12f0              483 main/binary-all/Packages.gz
+ db7c35396ebf1a73d237c8c035f2062d1119095ea5d58fbc5aac161b3eef27f5e4e5fc2c3c67df13c38607232b32a586f912abd89d0fc9e132564033bf23cfce              168 Release
+ 08572c3f19059681d0d1c0790dbcc68648f283b2e14933da23f5e0582ed6f1e021c708fe766feb5c9aac14066b852479b6d9dc1c4ea91b5dcf8bfb14438c0b0e              482 main/binary-all/Packages.gz
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEEpVsAGf1CEz9jilSBIJxkf5opDmAFAmoz35kACgkQIJxkf5op
-DmCh9Q/9FVJD6H2KYlyEUP6h2ATd6pMTCaKczGDy9cra/eNDSiWlAN7PGzwg+r9p
-WMjB5JLcNinpMbyKXHtIsAqQWHky0GxzbOKKywuVsH3c0wwZ6H6EkEfX4wd9IGUw
-yCaSHCsPxuiPtm3R5AR5PF1TzacytEeUvoFrn3blc9putNiyy1+9LFr0FvNXhxnp
-b6vwcqpq1SKa7Yb7kbIgyf2l8HKfobx9xudjRhzia/B6w4sHIUb0bwyUigq9zhYL
-o1Tbrt0ksSBgYBhG1KCSJjHbdN1NnrVbKECmzrj1oBJQXlGOLOZeSFo4WP0keaXC
-VjNSZZ0ssO20JipOrgSN1lDZjFoMWpcEO5rC/r9/+vBqzqL0Ptjqx2969Ruuc5q+
-2eEC3BxpbS/FV0eBjnH7dF32vtw2uxwK82c9WXhjPPU8LsHxEYr3xQg/yb4D1v5D
-MmsOgikxA6UrUWwwwGKZlSwEin4Xjo3Jz3sSAJ+0u9MmUpDeiRyKze/nF5chkE6/
-nAkJ0E6nnOF6icWrXjMok1nf0jUsklPOjr/5PdEOBrxC1smdah2s2K8lCx8b3T20
-fiJOxNBnjpzBj+vU8GXVPDRdR095KNMF7lv5MP2LA59LeOjnjL4aDl4Lj8KdCf8n
-05Pd+bGmzRLOV191wRNiJiokUVkHBZOxFq3oz939wMT8+Th/ISg=
-=1aaB
+iQIzBAEBCgAdFiEEpVsAGf1CEz9jilSBIJxkf5opDmAFAmoz3/kACgkQIJxkf5op
+DmDhdg/+L3M0wdb7LcRlBbON4zC/SEFm85pLpRx1+zZLjVi2B4+lEz3WOwn8qICb
+rBiU4+10jXOnIR1/7Pv5Nwssr12spz4JeB8VglW2Wrz2GJE2GnT0cLlBX2C26M1v
+b2EGr9zYtYeXeiUZPQyQfXoEhc3P++H73O3sSXCW1ooM6b13xXXOb5TIK8/bCqJK
+gJmFW0tVhqylYMFTYo/RkWML5Dq0PTIC7RzXnYs7Ya7/8MboFISvgXuoIYa2ITNJ
+ewwUnULZoTkPoiF8LLZvvGZ5crp6TG+8S29aFrXwcIDCyWaZfGPwSN2bXd9oh+5s
+mkFGWQAVO8vY7eoJGWLhEI8VrrKY0cTwRP+mbUHq0uwbjtjCKV59PzqGwrED8Dig
+Afc6GFqAQgjYAT5hyqs3Q00Ob1sMmbPxsmIYVOO39RdJKyP0fQOK+mJ6nosj+LGW
++cjYQn9r3ADDr8H5Y6lnhDteLbajJXQOydQAWnF36/Rlj6Dqz0nCOS4FE00r4W2X
+STEVB7cZN8QW7dJUzmoa9HeJeJfTS8LbrezTv2gbpk17uEWcMHu53htkFw9Fyou+
+lT1gm+5c8Lbv38NwliSr5cwddRMOYo9qILStwwo/maHBFYL9GIgbe7o20EiyyfWM
+CFxmUKrnvsJVc5lC3pw3x7IhRNscMk4Cg2eGyj21t6VWOsmNgqw=
+=jHd/
 -----END PGP SIGNATURE-----
