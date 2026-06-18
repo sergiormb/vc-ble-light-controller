@@ -8,14 +8,16 @@ on:
 jobs:
   test-build:
     runs-on: ubuntu-latest
+    env:
+      DEBIAN_FRONTEND: noninteractive
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
+          timeout 180 sudo apt-get update
+          timeout 240 sudo apt-get install -y --no-install-recommends \
             bluez \
             desktop-file-utils \
             dpkg-dev \

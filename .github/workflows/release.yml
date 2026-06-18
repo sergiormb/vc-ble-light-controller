@@ -12,6 +12,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
+      DEBIAN_FRONTEND: noninteractive
       APT_REPO_URL: https://sergiormb.github.io/vc-ble-light-controller
       PACKAGE_NAME: vc-ble-light-controller
     steps:
@@ -22,8 +23,8 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
+          timeout 180 sudo apt-get update
+          timeout 240 sudo apt-get install -y --no-install-recommends \
             apt-utils \
             bluez \
             desktop-file-utils \
