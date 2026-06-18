@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="VC BLE Light Controller">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="38%" r="58%">
+      <stop offset="0" stop-color="#fef3c7"/>
+      <stop offset="0.42" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#1e1e2e"/>
+    </radialGradient>
+    <linearGradient id="stem" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#60a5fa"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#181825"/>
+  <circle cx="64" cy="50" r="42" fill="url(#glow)" opacity="0.95"/>
+  <circle cx="64" cy="50" r="27" fill="#f8fafc"/>
+  <path d="M45 82h38l-6 22H51z" fill="url(#stem)"/>
+  <rect x="47" y="101" width="34" height="8" rx="4" fill="#c4b5fd"/>
+  <path d="M38 42c10-17 29-23 47-14" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.55"/>
+</svg>

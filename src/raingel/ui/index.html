@@ -1,0 +1,1080 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VC BLE Light Controller</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; min-height: 100%; background: #101018; }
+    body {
+      font-family: Inter, "Ubuntu", "Segoe UI", sans-serif;
+      color: rgba(255,255,255,0.78);
+      overflow: hidden;
+    }
+    button, input { font: inherit; }
+    .app-window {
+      background: #1e1e2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .titlebar {
+      background: #16161f;
+      min-height: 38px;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      user-select: none;
+    }
+    .window-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .window-button, .titlebar-settings {
+      width: 28px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: rgba(255,255,255,0.48);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .window-button:hover, .titlebar-settings:hover {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.86);
+    }
+    .window-close:hover {
+      background: #ef4444;
+      color: white;
+    }
+    .titlebar-title {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255,255,255,0.42);
+      letter-spacing: 0.03em;
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: default;
+    }
+    .app-body {
+      display: grid;
+      grid-template-columns: 238px 1fr;
+      flex: 1;
+      min-height: 0;
+    }
+    .sidebar {
+      background: #181825;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      padding: 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-height: 0;
+    }
+    .sidebar-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px 12px;
+    }
+    .scan-button, .small-button {
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.82);
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .scan-button {
+      min-height: 34px;
+      padding: 0 12px;
+      flex: 1;
+      text-align: left;
+    }
+    .small-button {
+      min-height: 30px;
+      padding: 0 10px;
+    }
+    .scan-button:hover, .small-button:hover { background: rgba(255,255,255,0.1); }
+    .scan-button:disabled { opacity: 0.55; cursor: default; }
+    .status {
+      padding: 0 16px 10px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.36);
+      line-height: 1.35;
+      min-height: 40px;
+    }
+    .config-box {
+      margin: 0;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 8px;
+      background: rgba(19,19,27,0.72);
+    }
+    .config-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .config-title {
+      font-size: 12px;
+      color: rgba(255,255,255,0.68);
+    }
+    .config-badge {
+      font-size: 10px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.64);
+      background: rgba(255,255,255,0.05);
+      white-space: nowrap;
+    }
+    .config-badge.ok {
+      color: #86efac;
+      border-color: rgba(134,239,172,0.22);
+      background: rgba(34,197,94,0.08);
+    }
+    .config-help {
+      font-size: 11px;
+      line-height: 1.35;
+      color: rgba(255,255,255,0.36);
+      margin-bottom: 9px;
+    }
+    .config-button {
+      width: 100%;
+      min-height: 30px;
+      text-align: center;
+    }
+    .sidebar-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.28);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 8px 16px 4px;
+    }
+    .lamp-list {
+      overflow-y: auto;
+      min-height: 90px;
+    }
+    .lamp-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      cursor: pointer;
+      border: 0;
+      border-left: 2px solid transparent;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      width: 100%;
+      transition: background 0.15s;
+    }
+    .lamp-item:hover { background: rgba(255,255,255,0.04); }
+    .lamp-item.active {
+      background: rgba(255,255,255,0.06);
+      border-left-color: #a78bfa;
+    }
+    .lamp-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 6px currentColor;
+      background: #333;
+      color: #333;
+    }
+    .lamp-copy { min-width: 0; }
+    .lamp-name {
+      font-size: 13px;
+      color: rgba(255,255,255,0.78);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 168px;
+    }
+    .lamp-state {
+      font-size: 11px;
+      color: rgba(255,255,255,0.32);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 168px;
+    }
+    .main {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 0;
+      overflow-y: auto;
+    }
+    .section-title {
+      font-size: 11px;
+      color: rgba(255,255,255,0.34);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+    .target-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .target-title {
+      font-size: 22px;
+      font-weight: 650;
+      color: rgba(255,255,255,0.88);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .target-address {
+      font-family: "Ubuntu Mono", ui-monospace, monospace;
+      font-size: 12px;
+      color: rgba(255,255,255,0.38);
+      margin-top: 4px;
+    }
+    .target-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .preview-area {
+      background: #13131b;
+      border-radius: 8px;
+      min-height: 112px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      border: 1px solid rgba(255,255,255,0.06);
+      overflow-x: auto;
+      padding: 14px;
+    }
+    .empty-preview {
+      font-size: 13px;
+      color: rgba(255,255,255,0.36);
+    }
+    .lamp-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      min-width: 72px;
+    }
+    .lamp-bulb {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #2a2a3a;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .lamp-preview-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.38);
+      max-width: 84px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .color-wheel-section {
+      display: flex;
+      gap: 22px;
+      align-items: flex-start;
+    }
+    .wheel-wrap {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    #colorWheel {
+      border-radius: 50%;
+      cursor: crosshair;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    .hex-display {
+      font-size: 12px;
+      color: rgba(255,255,255,0.56);
+      font-family: "Ubuntu Mono", ui-monospace, monospace;
+      background: #13131b;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .sliders { flex: 1; display: flex; flex-direction: column; gap: 14px; min-width: 220px; }
+    .slider-row { display: flex; flex-direction: column; gap: 6px; }
+    .slider-header { display: flex; justify-content: space-between; align-items: center; }
+    .slider-label { font-size: 12px; color: rgba(255,255,255,0.56); }
+    .slider-val { font-size: 12px; font-family: "Ubuntu Mono", ui-monospace, monospace; color: rgba(255,255,255,0.44); }
+    input[type=range] {
+      width: 100%;
+      height: 4px;
+      appearance: none;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+    .slider-r { background: linear-gradient(to right, #300, #f00); }
+    .slider-g { background: linear-gradient(to right, #030, #0f0); }
+    .slider-b { background: linear-gradient(to right, #003, #00f); }
+    .slider-bri { background: linear-gradient(to right, #222, #fff); }
+    input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid rgba(0,0,0,0.3);
+      cursor: pointer;
+    }
+    .presets-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .preset-chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.68);
+      background: rgba(255,255,255,0.04);
+      transition: background 0.15s;
+    }
+    .preset-chip:hover { background: rgba(255,255,255,0.1); }
+    .power-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #13131b;
+      border-radius: 8px;
+      padding: 11px 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .power-label { font-size: 13px; color: rgba(255,255,255,0.64); }
+    .toggle {
+      width: 42px;
+      height: 22px;
+      background: #a78bfa;
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: 0;
+      flex-shrink: 0;
+    }
+    .toggle.off { background: rgba(255,255,255,0.16); }
+    .toggle-knob {
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: left 0.2s;
+    }
+    .toggle.on .toggle-knob { left: 22px; }
+    .error-line {
+      color: #fca5a5;
+      font-size: 12px;
+      min-height: 18px;
+      margin-top: -8px;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8,8,13,0.62);
+      z-index: 20;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      width: min(360px, calc(100vw - 32px));
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      background: #1e1e2e;
+      box-shadow: 0 22px 70px rgba(0,0,0,0.38);
+      padding: 18px;
+    }
+    .modal-title {
+      font-size: 17px;
+      color: rgba(255,255,255,0.9);
+      font-weight: 650;
+      margin-bottom: 6px;
+    }
+    .modal-subtitle {
+      font-size: 12px;
+      line-height: 1.4;
+      color: rgba(255,255,255,0.42);
+      margin-bottom: 14px;
+    }
+    .modal-input {
+      width: 100%;
+      min-height: 36px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: #13131b;
+      color: rgba(255,255,255,0.86);
+      outline: none;
+      padding: 0 10px;
+      margin-bottom: 14px;
+    }
+    .modal-input:focus {
+      border-color: rgba(167,139,250,0.78);
+      box-shadow: 0 0 0 3px rgba(167,139,250,0.14);
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .primary-button {
+      border: 1px solid rgba(167,139,250,0.3);
+      background: #a78bfa;
+      color: #16161f;
+      border-radius: 7px;
+      min-height: 30px;
+      padding: 0 12px;
+      cursor: pointer;
+      font-weight: 650;
+    }
+    .primary-button:hover { background: #bba6ff; }
+    @media (max-width: 760px) {
+      .app-body { grid-template-columns: 1fr; }
+      .sidebar { max-height: 260px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .color-wheel-section { flex-direction: column; }
+      .wheel-wrap { align-self: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-window">
+    <div class="titlebar">
+      <div class="window-controls">
+        <button class="window-button window-close" id="windowCloseButton" title="Cerrar" aria-label="Cerrar">×</button>
+        <button class="window-button" id="windowMinimizeButton" title="Minimizar" aria-label="Minimizar">−</button>
+        <button class="window-button" id="windowMaximizeButton" title="Maximizar" aria-label="Maximizar">□</button>
+      </div>
+      <div class="titlebar-title" id="titleDragRegion">VC BLE Light Controller</div>
+      <button class="titlebar-settings" id="settingsButton" title="Configuración" aria-label="Configuración">⚙</button>
+    </div>
+
+    <div class="app-body">
+      <aside class="sidebar">
+        <div class="sidebar-top">
+          <button class="scan-button" id="scanButton">⟳ Escanear</button>
+          <button class="small-button" id="allButton">Todas</button>
+        </div>
+        <div class="status" id="status">Preparado. Pulsa Escanear para buscar lámparas BLE.</div>
+
+        <div class="sidebar-label">Lámparas</div>
+        <div class="lamp-list" id="lampList"></div>
+
+        <div class="sidebar-label" style="margin-top:12px">Escenas</div>
+        <button class="lamp-item" data-scene="cine"><span>🎬</span><span class="lamp-name">Cine</span></button>
+        <button class="lamp-item" data-scene="leer"><span>📖</span><span class="lamp-name">Leer</span></button>
+        <button class="lamp-item" data-scene="fiesta"><span>♪</span><span class="lamp-name">Fiesta</span></button>
+      </aside>
+
+      <main class="main">
+        <section class="target-row">
+          <div>
+            <div class="section-title">Objetivo</div>
+            <div class="target-title" id="targetTitle">Todas</div>
+            <div class="target-address" id="targetAddress">Control grupal</div>
+          </div>
+          <div class="target-actions">
+            <button class="small-button" id="renameButton">Renombrar</button>
+          </div>
+        </section>
+
+        <section>
+          <div class="section-title">Vista previa</div>
+          <div class="preview-area" id="previewArea">
+            <div class="empty-preview">Sin lámparas detectadas</div>
+          </div>
+        </section>
+
+        <section class="color-wheel-section">
+          <div class="wheel-wrap">
+            <div class="section-title" style="margin-bottom:4px">Color</div>
+            <canvas id="colorWheel" width="132" height="132"></canvas>
+            <div class="hex-display" id="hexDisplay">#A78BFA</div>
+          </div>
+          <div class="sliders">
+            <div class="slider-row">
+              <div class="slider-header">
+                <span class="slider-label">Rojo</span>
+                <span class="slider-val" id="rVal">167</span>
+              </div>
+              <input type="range" class="slider-r" id="slR" min="0" max="255" value="167">
+            </div>
+            <div class="slider-row">
+              <div class="slider-header">
+                <span class="slider-label">Verde</span>
+                <span class="slider-val" id="gVal">139</span>
+              </div>
+              <input type="range" class="slider-g" id="slG" min="0" max="255" value="139">
+            </div>
+            <div class="slider-row">
+              <div class="slider-header">
+                <span class="slider-label">Azul</span>
+                <span class="slider-val" id="bVal">250</span>
+              </div>
+              <input type="range" class="slider-b" id="slB" min="0" max="255" value="250">
+            </div>
+            <div class="slider-row">
+              <div class="slider-header">
+                <span class="slider-label">Brillo</span>
+                <span class="slider-val" id="briVal">100%</span>
+              </div>
+              <input type="range" class="slider-bri" id="slBri" min="0" max="100" value="100">
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div class="section-title">Colores rápidos</div>
+          <div class="presets-row">
+            <button class="preset-chip" data-color="255,220,100">☀ Cálido</button>
+            <button class="preset-chip" data-color="200,220,255">❄ Frío</button>
+            <button class="preset-chip" data-color="255,60,60">Rojo</button>
+            <button class="preset-chip" data-color="60,200,100">Verde</button>
+            <button class="preset-chip" data-color="60,120,255">Azul</button>
+            <button class="preset-chip" data-color="255,100,200">Rosa</button>
+            <button class="preset-chip" data-color="255,255,255">Blanco</button>
+          </div>
+        </section>
+
+        <section class="power-row">
+          <span class="power-label">Encender / apagar</span>
+          <button class="toggle on" id="powerToggle" aria-label="Encender o apagar"><span class="toggle-knob"></span></button>
+        </section>
+        <div class="error-line" id="errorLine"></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="renameModal" aria-hidden="true">
+    <form class="modal" id="renameForm">
+      <div class="modal-title">Renombrar lámpara</div>
+      <div class="modal-subtitle" id="renameSubtitle">Elige un nombre corto para reconocerla en la lista.</div>
+      <input class="modal-input" id="renameInput" maxlength="40" autocomplete="off" spellcheck="false">
+      <div class="modal-actions">
+        <button type="button" class="small-button" id="renameCancelButton">Cancelar</button>
+        <button type="submit" class="primary-button">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="settingsModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="modal-title" id="settingsTitle">Configuración</div>
+      <div class="modal-subtitle">Ajustes del controlador Bluetooth y del sistema.</div>
+      <div class="config-box">
+        <div class="config-row">
+          <span class="config-title">Modo Bluetooth</span>
+          <span class="config-badge" id="btModeBadge">...</span>
+        </div>
+        <div class="config-help" id="btModeHelp">Comprobando configuración de BlueZ.</div>
+        <button class="small-button config-button" id="applyBtModeButton">Aplicar modo BLE</button>
+      </div>
+      <div class="modal-actions" style="margin-top:14px">
+        <button type="button" class="small-button" id="settingsCloseButton">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const GROUP = "__all__";
+    let state = { lamps: [], groupTarget: GROUP };
+    let activeTarget = GROUP;
+    let pending = new Map();
+    let seq = 1;
+    let colorDebounce = null;
+    let brightnessDebounce = null;
+    let bluetoothConfig = null;
+    let renamingAddress = null;
+    let windowState = { maximized: false };
+
+    window.Raingel = {
+      call(method, params = {}) {
+        const id = seq++;
+        const payload = JSON.stringify({ id, method, params });
+        return new Promise((resolve, reject) => {
+          pending.set(id, { resolve, reject });
+          window.webkit.messageHandlers.raingel.postMessage(payload);
+        });
+      },
+      receive(message) {
+        const item = pending.get(message.id);
+        if (!item) return;
+        pending.delete(message.id);
+        if (message.error) item.reject(new Error(message.error));
+        else item.resolve(message.result);
+      }
+    };
+
+    function toHex(r, g, b) {
+      return "#" + [r, g, b].map(v => Number(v).toString(16).padStart(2, "0")).join("").toUpperCase();
+    }
+
+    function scaledHex(lamp) {
+      if (!lamp.powered) return "#2a2a3a";
+      const factor = lamp.brightness / 100;
+      return toHex(
+        Math.round(lamp.color[0] * factor),
+        Math.round(lamp.color[1] * factor),
+        Math.round(lamp.color[2] * factor)
+      );
+    }
+
+    function selectedLamp() {
+      return state.lamps.find(lamp => lamp.address === activeTarget) || null;
+    }
+
+    function targetColor() {
+      const lamp = selectedLamp();
+      if (lamp) return lamp.color;
+      if (state.lamps.length) return state.lamps[0].color;
+      return [167, 139, 250];
+    }
+
+    function targetBrightness() {
+      const lamp = selectedLamp();
+      if (lamp) return lamp.brightness;
+      if (state.lamps.length) return Math.round(state.lamps.reduce((sum, item) => sum + item.brightness, 0) / state.lamps.length);
+      return 100;
+    }
+
+    function targetPowered() {
+      const lamp = selectedLamp();
+      if (lamp) return lamp.powered;
+      return state.lamps.some(lamp => lamp.powered);
+    }
+
+    function render() {
+      const list = document.getElementById("lampList");
+      list.innerHTML = "";
+      if (!state.lamps.length) {
+        list.innerHTML = "<div class='status'>No hay lámparas guardadas todavía.</div>";
+      }
+      for (const lamp of state.lamps) {
+        const button = document.createElement("button");
+        button.className = "lamp-item" + (activeTarget === lamp.address ? " active" : "");
+        button.addEventListener("click", () => {
+          activeTarget = lamp.address;
+          render();
+        });
+        const color = lamp.powered ? toHex(...lamp.color) : "#333333";
+        button.innerHTML = `
+          <span class="lamp-dot" style="background:${color};color:${color}"></span>
+          <span class="lamp-copy">
+            <span class="lamp-name">${escapeHtml(lamp.name)}</span>
+            <span class="lamp-state">${lamp.powered ? "Encendida" : "Apagada"} · ${lamp.connected ? "conectada" : "sin conectar"}</span>
+          </span>`;
+        list.appendChild(button);
+      }
+
+      const activeAll = activeTarget === GROUP;
+      document.getElementById("allButton").classList.toggle("active", activeAll);
+      const lamp = selectedLamp();
+      document.getElementById("targetTitle").textContent = activeAll ? "Todas" : (lamp ? lamp.name : "Todas");
+      document.getElementById("targetAddress").textContent = activeAll ? "Control grupal" : (lamp ? lamp.address : "");
+      document.getElementById("renameButton").style.display = activeAll ? "none" : "inline-block";
+
+      renderPreview();
+      syncControls();
+      const errors = state.lamps.map(lamp => lamp.last_error).filter(Boolean);
+      document.getElementById("errorLine").textContent = errors[0] || "";
+    }
+
+    function renderPreview() {
+      const preview = document.getElementById("previewArea");
+      preview.innerHTML = "";
+      if (!state.lamps.length) {
+        preview.innerHTML = "<div class='empty-preview'>Sin lámparas detectadas</div>";
+        return;
+      }
+      for (const lamp of state.lamps) {
+        const hex = scaledHex(lamp);
+        const item = document.createElement("div");
+        item.className = "lamp-preview";
+        item.innerHTML = `
+          <div class="lamp-bulb" style="background:${hex};box-shadow:${lamp.powered ? `0 0 18px ${hex}99` : "none"}"></div>
+          <div class="lamp-preview-label">${escapeHtml(lamp.name)}</div>`;
+        preview.appendChild(item);
+      }
+    }
+
+    function syncControls() {
+      const color = targetColor();
+      const brightness = targetBrightness();
+      document.getElementById("slR").value = color[0];
+      document.getElementById("slG").value = color[1];
+      document.getElementById("slB").value = color[2];
+      document.getElementById("slBri").value = brightness;
+      document.getElementById("rVal").textContent = color[0];
+      document.getElementById("gVal").textContent = color[1];
+      document.getElementById("bVal").textContent = color[2];
+      document.getElementById("briVal").textContent = brightness + "%";
+      document.getElementById("hexDisplay").textContent = toHex(...color);
+      const powerToggle = document.getElementById("powerToggle");
+      powerToggle.classList.toggle("on", targetPowered());
+      powerToggle.classList.toggle("off", !targetPowered());
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;"
+      }[char]));
+    }
+
+    async function refresh() {
+      state = await window.Raingel.call("state");
+      if (activeTarget !== GROUP && !state.lamps.some(lamp => lamp.address === activeTarget)) activeTarget = GROUP;
+      render();
+      await refreshWindowState();
+      await refreshBluetoothConfig();
+    }
+
+    async function refreshWindowState() {
+      try {
+        windowState = await window.Raingel.call("window_state");
+        renderWindowState();
+      } catch (error) {
+        document.getElementById("errorLine").textContent = error.message;
+      }
+    }
+
+    function renderWindowState() {
+      const button = document.getElementById("windowMaximizeButton");
+      const maximized = Boolean(windowState && windowState.maximized);
+      button.textContent = maximized ? "❐" : "□";
+      button.title = maximized ? "Restaurar" : "Maximizar";
+      button.setAttribute("aria-label", button.title);
+    }
+
+    async function minimizeWindow() {
+      windowState = await window.Raingel.call("window_minimize");
+      renderWindowState();
+    }
+
+    async function toggleMaximizeWindow() {
+      windowState = await window.Raingel.call("window_toggle_maximize");
+      renderWindowState();
+      window.setTimeout(refreshWindowState, 220);
+    }
+
+    async function closeWindow() {
+      await window.Raingel.call("window_close");
+    }
+
+    function startWindowDrag(event) {
+      if (event.button !== 0) return;
+      window.Raingel.call("window_drag_start", {
+        button: 1,
+        rootX: Math.round(event.screenX),
+        rootY: Math.round(event.screenY),
+        time: 0
+      }).catch(() => {});
+    }
+
+    async function refreshBluetoothConfig() {
+      try {
+        bluetoothConfig = await window.Raingel.call("bluetooth_config");
+        renderBluetoothConfig();
+      } catch (error) {
+        document.getElementById("btModeBadge").textContent = "error";
+        document.getElementById("btModeHelp").textContent = error.message;
+      }
+    }
+
+    function renderBluetoothConfig() {
+      const badge = document.getElementById("btModeBadge");
+      const help = document.getElementById("btModeHelp");
+      const button = document.getElementById("applyBtModeButton");
+      const mode = bluetoothConfig && bluetoothConfig.mode ? bluetoothConfig.mode : "auto";
+      badge.textContent = bluetoothConfig && bluetoothConfig.isLe ? "LE" : mode;
+      badge.classList.toggle("ok", Boolean(bluetoothConfig && bluetoothConfig.isLe));
+      button.disabled = Boolean(bluetoothConfig && bluetoothConfig.isLe);
+      help.textContent = bluetoothConfig && bluetoothConfig.isLe
+        ? "BlueZ ya está forzado a BLE."
+        : "Recomendado para evitar errores BREDR al conectar lámparas.";
+    }
+
+    async function applyBluetoothConfig() {
+      const button = document.getElementById("applyBtModeButton");
+      button.disabled = true;
+      document.getElementById("btModeHelp").textContent = "Esperando autorización del sistema...";
+      try {
+        bluetoothConfig = await window.Raingel.call("apply_bluetooth_config");
+        renderBluetoothConfig();
+        document.getElementById("status").textContent = "Bluetooth configurado en modo BLE.";
+      } catch (error) {
+        document.getElementById("btModeHelp").textContent = error.message;
+        button.disabled = false;
+      }
+    }
+
+    async function openSettingsModal() {
+      document.getElementById("settingsModal").classList.add("open");
+      document.getElementById("settingsModal").setAttribute("aria-hidden", "false");
+      await refreshBluetoothConfig();
+    }
+
+    function closeSettingsModal() {
+      document.getElementById("settingsModal").classList.remove("open");
+      document.getElementById("settingsModal").setAttribute("aria-hidden", "true");
+    }
+
+    async function scan() {
+      const button = document.getElementById("scanButton");
+      button.disabled = true;
+      document.getElementById("status").textContent = "Escaneando Bluetooth durante unos segundos...";
+      try {
+        state = await window.Raingel.call("scan", { timeout: 8 });
+        document.getElementById("status").textContent = state.lamps.length
+          ? `Detectadas/guardadas: ${state.lamps.length} lámparas.`
+          : "No se detectaron lámparas VC-BLELIGHT.";
+        render();
+      } catch (error) {
+        document.getElementById("status").textContent = "Error escaneando: " + error.message;
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function sendPower() {
+      const powered = !targetPowered();
+      try {
+        state = await window.Raingel.call("power", { target: activeTarget, powered });
+        render();
+      } catch (error) {
+        document.getElementById("errorLine").textContent = error.message;
+      }
+    }
+
+    function currentSliderColor() {
+      return [
+        Number(document.getElementById("slR").value),
+        Number(document.getElementById("slG").value),
+        Number(document.getElementById("slB").value)
+      ];
+    }
+
+    function updateColorLabels() {
+      const color = currentSliderColor();
+      const brightness = Number(document.getElementById("slBri").value);
+      document.getElementById("rVal").textContent = color[0];
+      document.getElementById("gVal").textContent = color[1];
+      document.getElementById("bVal").textContent = color[2];
+      document.getElementById("briVal").textContent = brightness + "%";
+      document.getElementById("hexDisplay").textContent = toHex(...color);
+    }
+
+    function scheduleColorSend() {
+      updateColorLabels();
+      clearTimeout(colorDebounce);
+      colorDebounce = setTimeout(async () => {
+        try {
+          state = await window.Raingel.call("color", { target: activeTarget, color: currentSliderColor() });
+          render();
+        } catch (error) {
+          document.getElementById("errorLine").textContent = error.message;
+        }
+      }, 180);
+    }
+
+    function scheduleBrightnessSend() {
+      updateColorLabels();
+      clearTimeout(brightnessDebounce);
+      brightnessDebounce = setTimeout(async () => {
+        try {
+          state = await window.Raingel.call("brightness", {
+            target: activeTarget,
+            brightness: Number(document.getElementById("slBri").value)
+          });
+          render();
+        } catch (error) {
+          document.getElementById("errorLine").textContent = error.message;
+        }
+      }, 180);
+    }
+
+    async function setPreset(color) {
+      document.getElementById("slR").value = color[0];
+      document.getElementById("slG").value = color[1];
+      document.getElementById("slB").value = color[2];
+      updateColorLabels();
+      try {
+        state = await window.Raingel.call("color", { target: activeTarget, color });
+        render();
+      } catch (error) {
+        document.getElementById("errorLine").textContent = error.message;
+      }
+    }
+
+    async function applyScene(scene) {
+      try {
+        state = await window.Raingel.call("scene", { target: activeTarget, scene });
+        render();
+      } catch (error) {
+        document.getElementById("errorLine").textContent = error.message;
+      }
+    }
+
+    function openRenameModal() {
+      const lamp = selectedLamp();
+      if (!lamp) return;
+      renamingAddress = lamp.address;
+      document.getElementById("renameSubtitle").textContent = lamp.address;
+      const input = document.getElementById("renameInput");
+      input.value = lamp.name;
+      document.getElementById("renameModal").classList.add("open");
+      document.getElementById("renameModal").setAttribute("aria-hidden", "false");
+      window.setTimeout(() => {
+        input.focus();
+        input.select();
+      }, 0);
+    }
+
+    function closeRenameModal() {
+      renamingAddress = null;
+      document.getElementById("renameModal").classList.remove("open");
+      document.getElementById("renameModal").setAttribute("aria-hidden", "true");
+    }
+
+    async function submitRename(event) {
+      event.preventDefault();
+      if (!renamingAddress) return;
+      const name = document.getElementById("renameInput").value.trim();
+      try {
+        state = await window.Raingel.call("rename", { address: renamingAddress, name });
+        closeRenameModal();
+        render();
+      } catch (error) {
+        document.getElementById("errorLine").textContent = error.message;
+      }
+    }
+
+    function drawWheel() {
+      const canvas = document.getElementById("colorWheel");
+      const ctx = canvas.getContext("2d");
+      const cx = 66, cy = 66, radius = 64;
+      for (let angle = 0; angle < 360; angle++) {
+        const startA = (angle - 1) * Math.PI / 180;
+        const endA = (angle + 1) * Math.PI / 180;
+        for (let s = 0; s <= radius; s += 1) {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, s + 1, startA, endA);
+          ctx.closePath();
+          ctx.fillStyle = `hsl(${angle}, ${(s / radius) * 100}%, ${100 - (s / radius) * 50}%)`;
+          ctx.fill();
+        }
+      }
+      canvas.addEventListener("click", (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left - cx;
+        const y = event.clientY - rect.top - cy;
+        const dist = Math.sqrt(x * x + y * y);
+        if (dist > radius) return;
+        const angle = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+        const sat = dist / radius;
+        const light = 1 - (dist / radius) * 0.5;
+        setPreset(hslToRgb(angle / 360, sat, light));
+      });
+    }
+
+    function hslToRgb(h, s, l) {
+      let r, g, b;
+      if (s === 0) {
+        r = g = b = l;
+      } else {
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1 / 3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1 / 3);
+      }
+      return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
+
+    function hue2rgb(p, q, t) {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    }
+
+    document.getElementById("scanButton").addEventListener("click", scan);
+    document.getElementById("windowCloseButton").addEventListener("click", closeWindow);
+    document.getElementById("windowMinimizeButton").addEventListener("click", minimizeWindow);
+    document.getElementById("windowMaximizeButton").addEventListener("click", toggleMaximizeWindow);
+    document.getElementById("titleDragRegion").addEventListener("mousedown", startWindowDrag);
+    document.getElementById("titleDragRegion").addEventListener("dblclick", toggleMaximizeWindow);
+    document.getElementById("settingsButton").addEventListener("click", openSettingsModal);
+    document.getElementById("settingsCloseButton").addEventListener("click", closeSettingsModal);
+    document.getElementById("applyBtModeButton").addEventListener("click", applyBluetoothConfig);
+    document.getElementById("allButton").addEventListener("click", () => {
+      activeTarget = GROUP;
+      render();
+    });
+    document.getElementById("renameButton").addEventListener("click", openRenameModal);
+    document.getElementById("renameCancelButton").addEventListener("click", closeRenameModal);
+    document.getElementById("renameForm").addEventListener("submit", submitRename);
+    document.getElementById("renameModal").addEventListener("click", (event) => {
+      if (event.target.id === "renameModal") closeRenameModal();
+    });
+    document.getElementById("settingsModal").addEventListener("click", (event) => {
+      if (event.target.id === "settingsModal") closeSettingsModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && document.getElementById("renameModal").classList.contains("open")) {
+        closeRenameModal();
+      }
+      if (event.key === "Escape" && document.getElementById("settingsModal").classList.contains("open")) {
+        closeSettingsModal();
+      }
+    });
+    document.getElementById("powerToggle").addEventListener("click", sendPower);
+    document.getElementById("slR").addEventListener("input", scheduleColorSend);
+    document.getElementById("slG").addEventListener("input", scheduleColorSend);
+    document.getElementById("slB").addEventListener("input", scheduleColorSend);
+    document.getElementById("slBri").addEventListener("input", scheduleBrightnessSend);
+    document.querySelectorAll("[data-color]").forEach(button => {
+      button.addEventListener("click", () => setPreset(button.dataset.color.split(",").map(Number)));
+    });
+    document.querySelectorAll("[data-scene]").forEach(button => {
+      button.addEventListener("click", () => applyScene(button.dataset.scene));
+    });
+
+    drawWheel();
+    refresh().catch(error => {
+      document.getElementById("status").textContent = "No se pudo cargar el estado: " + error.message;
+    });
+  </script>
+</body>
+</html>

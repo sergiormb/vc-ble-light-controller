@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=VC BLE Light Controller
+Comment=Unofficial controller for VC-BLELIGHT LED lamps
+Exec=vc-ble-light-controller
+Icon=vc-ble-light-controller
+Terminal=false
+Categories=Utility;GTK;
+StartupNotify=true

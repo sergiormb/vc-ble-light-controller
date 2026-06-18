@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vc-ble-light-controller"
+version = "0.1.0"
+description = "Unofficial desktop BLE controller for VC-BLELIGHT lamps"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "bleak>=0.22",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+]
+
+[project.scripts]
+vc-ble-light-controller = "raingel.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+raingel = ["ui/*.html", "assets/*.svg"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

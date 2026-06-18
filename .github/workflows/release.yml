@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      APT_REPO_URL: https://sergiormb.github.io/vc-ble-light-controller
+      PACKAGE_NAME: vc-ble-light-controller
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            apt-utils \
+            bluez \
+            desktop-file-utils \
+            dpkg-dev \
+            gir1.2-gtk-3.0 \
+            gir1.2-webkit2-4.1 \
+            python3-bleak \
+            python3-gi \
+            python3-pytest
+
+      - name: Test and build
+        run: |
+          python3 -m pytest
+          python3 -m compileall -q src tests
+          ./scripts/build-deb.sh
+
+      - name: Publish GitHub release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          deb="dist/vc-ble-light-controller_0.1.0_all.deb"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$deb" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$deb" \
+              --title "VC BLE Light Controller $GITHUB_REF_NAME" \
+              --notes "Unofficial VC-BLELIGHT desktop controller release $GITHUB_REF_NAME."
+          fi
+
+      - name: Import APT signing key
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+          APT_GPG_KEY_ID: ${{ secrets.APT_GPG_KEY_ID }}
+        run: |
+          test -n "$APT_GPG_PRIVATE_KEY"
+          test -n "$APT_GPG_KEY_ID"
+          printf '%s' "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
+          gpg --batch --list-secret-keys "$APT_GPG_KEY_ID"
+
+      - name: Build signed APT repository
+        env:
+          APT_GPG_KEY_ID: ${{ secrets.APT_GPG_KEY_ID }}
+        run: |
+          set -euo pipefail
+          public=".apt-repo-work/public"
+          rm -rf .apt-repo-work
+          mkdir -p "$public/pool/main/v/vc-ble-light-controller"
+          mkdir -p "$public/dists/stable/main/binary-all"
+          cp dist/vc-ble-light-controller_0.1.0_all.deb "$public/pool/main/v/vc-ble-light-controller/"
+          cd "$public"
+          dpkg-scanpackages --arch all pool /dev/null | gzip -9c > dists/stable/main/binary-all/Packages.gz
+          apt-ftparchive \
+            -o APT::FTPArchive::Release::Origin="VC BLE Light Controller" \
+            -o APT::FTPArchive::Release::Label="VC BLE Light Controller" \
+            -o APT::FTPArchive::Release::Suite="stable" \
+            -o APT::FTPArchive::Release::Codename="stable" \
+            -o APT::FTPArchive::Release::Architectures="all" \
+            -o APT::FTPArchive::Release::Components="main" \
+            release dists/stable > dists/stable/Release
+          gpg --batch --yes --armor --detach-sign --local-user "$APT_GPG_KEY_ID" \
+            --output dists/stable/Release.gpg dists/stable/Release
+          gpg --batch --yes --clearsign --local-user "$APT_GPG_KEY_ID" \
+            --output dists/stable/InRelease dists/stable/Release
+          gpg --batch --yes --armor --export "$APT_GPG_KEY_ID" > vc-ble-light-controller-archive-keyring.gpg
+
+      - name: Publish APT repository to GitHub Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          public="$PWD/.apt-repo-work/public"
+          work="$PWD/.apt-repo-work/gh-pages"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p "$work"
+          cd "$work"
+          git init
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git fetch origin gh-pages
+            git checkout gh-pages
+            find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          else
+            git checkout --orphan gh-pages
+          fi
+          cp -a "$public"/. .
+          touch .nojekyll
+          git add -A
+          git commit -m "Publish apt repository for ${GITHUB_REF_NAME}"
+          git push -u origin gh-pages --force
