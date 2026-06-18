@@ -23,7 +23,7 @@ gpg --armor --export-secret-keys KEY_ID
 gpg --armor --export KEY_ID
 ```
 
-Only the public key is published to GitHub Pages as
+Only the public key is published to GitHub Pages as a binary apt keyring at
 `vc-ble-light-controller-archive-keyring.gpg`.
 
 ## Release Flow

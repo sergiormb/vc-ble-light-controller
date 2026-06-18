@@ -84,7 +84,7 @@ jobs:
             --output dists/stable/Release.gpg dists/stable/Release
           gpg --batch --yes --clearsign --local-user "$APT_GPG_KEY_ID" \
             --output dists/stable/InRelease dists/stable/Release
-          gpg --batch --yes --armor --export "$APT_GPG_KEY_ID" > vc-ble-light-controller-archive-keyring.gpg
+          gpg --batch --yes --export "$APT_GPG_KEY_ID" > vc-ble-light-controller-archive-keyring.gpg
 
       - name: Publish APT repository to GitHub Pages
         env:
